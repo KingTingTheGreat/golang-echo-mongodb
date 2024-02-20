@@ -57,10 +57,9 @@ func SignUp(c echo.Context) error {
 
 	// create a new user with the hashedpassword
 	newUser := models.User{
-		// Id:       primitive.NewObjectID(),
 		Name:     user.Name,
-		Password: hashedPassword,
 		Email:    user.Email,
+		Password: hashedPassword,
 	}
 	// save user to db
 	result, err := userCollection.InsertOne(ctx, newUser)
@@ -73,28 +72,29 @@ func SignUp(c echo.Context) error {
 
 func SignIn(c echo.Context) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	var userLogin models.UserLogin
+	var loginInfo models.LoginInfo
 	var user models.User
 	defer cancel()
 
 	//validate the request body
-	if err := c.Bind(&userLogin); err != nil {
+	if err := c.Bind(&loginInfo); err != nil {
 		return c.JSON(http.StatusBadRequest, responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: &echo.Map{"data": err.Error()}})
 	}
 
-	err := userCollection.FindOne(ctx, bson.M{"email": userLogin.Email}).Decode(&user)
+	err := userCollection.FindOne(ctx, bson.M{"email": loginInfo.Email}).Decode(&user)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: &echo.Map{"data": err.Error()}})
 	}
 
 	// check correct password
-	if !CheckPasswordHash(userLogin.Password, user.Password) {
+	if !CheckPasswordHash(loginInfo.Password, user.Password) {
 		return c.JSON(http.StatusUnauthorized, responses.UserResponse{Status: http.StatusUnauthorized, Message: "error", Data: &echo.Map{"data": "Invalid password"}})
 	}
 
 	cleanUser := models.User{
-		Name:  user.Name,
-		Email: user.Email,
+		Name:     user.Name,
+		Email:    user.Email,
+		Password: "",
 	}
 	return c.JSON(http.StatusOK, responses.UserResponse{Status: http.StatusOK, Message: "success", Data: &echo.Map{"data": cleanUser}})
 }

@@ -1,12 +1,12 @@
 package models
 
-type User struct {
-	Name     string `json:"name,omitempty" validate:"required"`
-	Password string `json:"password,omitempty" validate:"required"`
+type LoginInfo struct {
 	Email    string `json:"email,omitempty" validate:"required"`
+	Password string `json:"password,omitempty" validate:"required"`
 }
 
-type UserLogin struct {
-	Email    string `json:"email,omitempty" validate:"required"`
+type User struct {
+	Email    string `json:"email,omitempty" validate:"required,email"`
 	Password string `json:"password,omitempty" validate:"required"`
+	Name     string `json:"name,omitempty" validate:"required"`
 }
